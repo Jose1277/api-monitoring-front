@@ -50,18 +50,21 @@ export function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 
- // anti ddos and brute-force protection
-  if (isAuthRoute) {
-    if (isRateLimited(`auth:${ip}`, AUTH_RATE_LIMIT, AUTH_WINDOW_MS)) {
+  // Rate limiting only in production — in dev, Next.js prefetches and redirects
+  // easily exhaust the in-memory store (all local requests share ip="unknown")
+  if (process.env.NODE_ENV !== 'development') {
+    if (isAuthRoute) {
+      if (isRateLimited(`auth:${ip}`, AUTH_RATE_LIMIT, AUTH_WINDOW_MS)) {
+        return new NextResponse("Too Many Requests", { status: 429 });
+      }
+    } else if (isRateLimited(`global:${ip}`, RATE_LIMIT, WINDOW_MS)) {
       return new NextResponse("Too Many Requests", { status: 429 });
     }
-  } else if (isRateLimited(`global:${ip}`, RATE_LIMIT, WINDOW_MS)) {
-    return new NextResponse("Too Many Requests", { status: 429 });
   }
 
 //redirect to home if auth
   if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL("/home", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
 //protected routes

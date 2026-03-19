@@ -69,7 +69,7 @@ export default function LoginPage() {
         try {
             await login(email, password);
             setSuccess(true);
-            setTimeout(() => router.push('/home'), 2000);
+            setTimeout(() => router.push('/dashboard'), 2000);
         } catch (err: unknown) {
             const axiosMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
             setError(axiosMessage ?? 'Login failed. Please try again.');

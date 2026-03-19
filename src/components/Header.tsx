@@ -38,6 +38,7 @@ export default function Header() {
             </div>
 
             {/* Right */}
+            
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-xs font-semibold text-white uppercase">
@@ -48,7 +49,7 @@ export default function Header() {
 
                 <button
                     onClick={handleLogout}
-                    className="cursor-pointer text-xs tracking-widest text-white/40 uppercase transition-colors duration-200 hover:text-white/80"
+                    className="cursor-pointer text-xs mt-1 tracking-widest text-white/40 uppercase transition-colors duration-200 hover:text-white/80"
                 >
                     Logout
                 </button>

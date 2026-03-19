@@ -34,7 +34,8 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Token expired or invalid — clear session and redirect
-      if (typeof window !== "undefined") {
+      // Skip redirect if already on an auth page to avoid reload on wrong credentials
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/register")) {
         localStorage.removeItem("token");
         window.location.href = "/login";
       }

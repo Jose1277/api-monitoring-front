@@ -2,7 +2,10 @@
 
 import { useState, type ReactNode, type FormEvent } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import RedirectingMessage from '@/components/RedirectingMessage';
 import { useAuthContext } from '@/contexts/AuthContext';
+import Footer from '@/components/Footer';
 
 interface FloatInputProps {
     id: string;
@@ -51,6 +54,7 @@ function FloatInput({
 
 export default function RegisterPage() {
     const { register, loading } = useAuthContext();
+    const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
@@ -58,6 +62,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
 
     const getRules = (pwd: string) => ({
         length: pwd.length >= 8,
@@ -102,12 +107,11 @@ export default function RegisterPage() {
 
         try {
             await register(name, email, password);
+            setSuccess(true);
+            setTimeout(() => router.push('/login'), 2000);
         } catch (err: unknown) {
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : 'Registration failed. Please try again.';
-            setError(message);
+            const axiosMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            setError(axiosMessage ?? 'Registration failed. Please try again.');
         }
     };
 
@@ -123,105 +127,110 @@ export default function RegisterPage() {
     );
 
     return (
-        <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#0c1445_0%,#1f1d67_45%,#34104f_100%)] px-4 py-10">
+        <>
+            <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#0c1445_0%,#1f1d67_45%,#34104f_100%)] px-4 py-10">
 
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] bg-fuchsia-600/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-120px] right-[-120px] w-[400px] h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
-            </div>
-
-            <section className="relative z-10 w-full max-w-xl overflow-hidden rounded-[28px] border border-white/10 bg-white/8 px-6 py-8 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.30)] md:px-10 md:py-10">
-                {/* inner glows */}
                 <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute left-10 top-8 h-40 w-40 rounded-full bg-fuchsia-400/15 blur-3xl" />
-                    <div className="absolute right-10 top-16 h-28 w-28 rounded-full bg-pink-300/20 blur-3xl" />
-                    <div className="absolute bottom-6 right-4 h-36 w-36 rounded-full bg-violet-400/15 blur-3xl" />
+                    <div className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] bg-fuchsia-600/20 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-[-120px] right-[-120px] w-[400px] h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
                 </div>
 
-                <div className="relative z-10">
-                    <div className="mb-8 text-center">
-                        <h1 className="text-3xl font-semibold tracking-[0.18em] text-white md:text-4xl">
-                            REGISTER
-                        </h1>
-                        <p className="mt-2 text-sm text-white/60">
-                            Create your account and get started.
-                        </p>
+                <section className="relative z-10 w-full max-w-xl overflow-hidden rounded-[28px] border border-white/10 bg-white/8 px-6 py-8 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.30)] md:px-10 md:py-10">
+                    {/* inner glows */}
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute left-10 top-8 h-40 w-40 rounded-full bg-fuchsia-400/15 blur-3xl" />
+                        <div className="absolute right-10 top-16 h-28 w-28 rounded-full bg-pink-300/20 blur-3xl" />
+                        <div className="absolute bottom-6 right-4 h-36 w-36 rounded-full bg-violet-400/15 blur-3xl" />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {error && (
-                            <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                                {error}
-                            </div>
-                        )}
-
-                        <FloatInput
-                            id="name"
-                            label="Name"
-                            value={name}
-                            onChange={setName}
-                        />
-
-                        <FloatInput
-                            id="email"
-                            label="Email"
-                            type="email"
-                            value={email}
-                            onChange={setEmail}
-                        />
-
-                        <FloatInput
-                            id="password"
-                            label="Password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={setPassword}
-                            rightElement={eyeButton}
-                        />
-
-                        {showStrength && (
-                            <div className="-mt-1 space-y-2 px-1">
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                                    <div
-                                        className={`h-full rounded-full transition-all duration-300 ${strength.barClass}`}
-                                    />
-                                </div>
-                                <p className={`text-xs font-medium ${strength.textClass}`}>
-                                    {strength.label}
-                                </p>
-                            </div>
-                        )}
-
-                        <FloatInput
-                            id="confirmPassword"
-                            label="Confirm Password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={confirmPassword}
-                            onChange={setConfirmPassword}
-                            rightElement={eyeButton}
-                        />
-
-                        {showConfirmCheck && (
-                            <p
-                                className={`-mt-1 px-1 text-xs font-medium ${passwordsMatch ? 'text-emerald-300' : 'text-red-300'
-                                    }`}
-                            >
-                                {passwordsMatch
-                                    ? '✓ Passwords match'
-                                    : '✗ Passwords do not match'}
+                    <div className="relative z-10">
+                        <div className="mb-8 text-center">
+                            <h1 className="text-3xl font-semibold tracking-[0.18em] text-white md:text-4xl">
+                                REGISTER
+                            </h1>
+                            <p className="mt-2 text-sm text-white/60">
+                                Create your account and get started.
                             </p>
-                        )}
+                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading || !isPasswordValid || !passwordsMatch}
-                            className="mt-4 w-full rounded-2xl px-4 py-3 font-medium tracking-[0.08em] text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100"
-                        >
-                            {loading ? 'REGISTERING...' : 'REGISTER'}
-                        </button>
-                    </form>
-                </div>
-            </section>
-        </main>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {success && <RedirectingMessage label="Account created! Redirecting" />}
+
+                            {error && (
+                                <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                                    {error}
+                                </div>
+                            )}
+
+                            <FloatInput
+                                id="name"
+                                label="Name"
+                                value={name}
+                                onChange={setName}
+                            />
+
+                            <FloatInput
+                                id="email"
+                                label="Email"
+                                type="email"
+                                value={email}
+                                onChange={setEmail}
+                            />
+
+                            <FloatInput
+                                id="password"
+                                label="Password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={setPassword}
+                                rightElement={eyeButton}
+                            />
+
+                            {showStrength && (
+                                <div className="-mt-1 space-y-2 px-1">
+                                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-300 ${strength.barClass}`}
+                                        />
+                                    </div>
+                                    <p className={`text-xs font-medium ${strength.textClass}`}>
+                                        {strength.label}
+                                    </p>
+                                </div>
+                            )}
+
+                            <FloatInput
+                                id="confirmPassword"
+                                label="Confirm Password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={setConfirmPassword}
+                                rightElement={eyeButton}
+                            />
+
+                            {showConfirmCheck && (
+                                <p
+                                    className={`-mt-1 px-1 text-xs font-medium ${passwordsMatch ? 'text-emerald-300' : 'text-red-300'
+                                        }`}
+                                >
+                                    {passwordsMatch
+                                        ? '✓ Passwords match'
+                                        : '✗ Passwords do not match'}
+                                </p>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={loading || !isPasswordValid || !passwordsMatch}
+                                className="mt-4 w-full rounded-2xl px-4 py-3 font-medium tracking-[0.08em] text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 hover:cursor-pointer"
+                            >
+                                {loading ? 'REGISTERING...' : 'REGISTER'}
+                            </button>
+                        </form>
+                    </div>
+                </section>
+                <Footer />
+            </main>
+        </>
     );
 }

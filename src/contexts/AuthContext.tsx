@@ -72,38 +72,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const persistSession = useCallback((token: string, user: User) => {
     localStorage.setItem("token", token);
-    // store user info for display purposes
     localStorage.setItem(
       "user",
       JSON.stringify({ id: user.id, name: user.name, email: user.email })
     );
+    document.cookie = `token=${token}; path=/; SameSite=Lax`;
     setState({ user, token, loading: false });
   }, []);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    document.cookie = "token=; path=/; max-age=0";
     setState({ user: null, token: null, loading: false });
   }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const { data } = await api.post<{ token: string; user: User }>(
+      const { data } = await api.post<{ access_token: string; user: User }>(
         "/auth/login",
         { email, password }
       );
-      persistSession(data.token, data.user);
+      persistSession(data.access_token, data.user);
     },
     [persistSession]
   );
 
   const register = useCallback(
     async (name: string, email: string, password: string) => {
-      const { data } = await api.post<{ token: string; user: User }>(
+      const { data } = await api.post<{ access_token: string; user: User }>(
         "/auth/register",
         { name, email, password }
       );
-      persistSession(data.token, data.user);
+      persistSession(data.access_token, data.user);
     },
     [persistSession]
   );

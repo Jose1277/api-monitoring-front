@@ -51,8 +51,8 @@ const METHOD_COLORS: Record<string, string> = {
     DELETE: 'bg-red-500/20 text-red-300',
 };
 
-function timeAgo(date: string) {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+function timeAgo(date: string, now: number) {
+    const seconds = Math.floor((now - new Date(date).getTime()) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -73,7 +73,7 @@ export default function EndpointDetailPage() {
     const [fetching, setFetching] = useState(true);
     const [editOpen, setEditOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    const [, setTick] = useState(0);
+    const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
         if (!loading && !token) router.replace('/login');
@@ -97,7 +97,7 @@ export default function EndpointDetailPage() {
 
     // Update "X ago" labels every second
     useEffect(() => {
-        const ticker = setInterval(() => setTick((t) => t + 1), 1000);
+        const ticker = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(ticker);
     }, []);
 
@@ -240,7 +240,7 @@ export default function EndpointDetailPage() {
                                                 className={`transition-colors hover:bg-white/5 ${i !== checks.length - 1 ? 'border-b border-white/5' : ''}`}
                                             >
                                                 <td className="px-5 py-3 text-white/60 whitespace-nowrap">
-                                                    {timeAgo(check.checkedAt)}
+                                                    {timeAgo(check.checkedAt, now)}
                                                 </td>
                                                 <td className="px-5 py-3">
                                                     <span className={`flex items-center gap-1.5 text-xs font-medium w-fit px-2 py-0.5 rounded-full ${

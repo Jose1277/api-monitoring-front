@@ -73,6 +73,7 @@ export default function EndpointDetailPage() {
     const [fetching, setFetching] = useState(true);
     const [editOpen, setEditOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [, setTick] = useState(0);
 
     useEffect(() => {
         if (!loading && !token) router.replace('/login');
@@ -93,6 +94,27 @@ export default function EndpointDetailPage() {
             if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
         }).finally(() => setFetching(false));
     }, [token, id]);
+
+    // Update "X ago" labels every second
+    useEffect(() => {
+        const ticker = setInterval(() => setTick((t) => t + 1), 1000);
+        return () => clearInterval(ticker);
+    }, []);
+
+    // Poll for new checks at the same interval the pinger uses
+    useEffect(() => {
+        if (!token || !id || !endpoint) return;
+        const poll = setInterval(() => {
+            Promise.allSettled([
+                api.get<HealthCheck[]>(`/health-checks/endpoint/${id}`),
+                api.get<Stats>(`/health-checks/endpoint/${id}/stats`),
+            ]).then(([checksRes, statsRes]) => {
+                if (checksRes.status === 'fulfilled') setChecks(checksRes.value.data);
+                if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
+            });
+        }, endpoint.interval);
+        return () => clearInterval(poll);
+    }, [token, id, endpoint]);
 
     const handleDelete = async () => {
         if (!endpoint) return;

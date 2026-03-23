@@ -54,7 +54,7 @@ function FloatInput({
 }
 
 export default function LoginPage() {
-    const { login, loading } = useAuthContext();
+    const { login } = useAuthContext();
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -62,10 +62,12 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
         setError('');
+        setSubmitting(true);
 
         try {
             await login(email, password);
@@ -74,6 +76,8 @@ export default function LoginPage() {
         } catch (err: unknown) {
             const axiosMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
             setError(axiosMessage ?? 'Login failed. Please try again.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -138,10 +142,10 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={loading || success}
+                            disabled={submitting || success}
                             className="mt-4 w-full rounded-2xl px-4 py-3 font-medium tracking-[0.08em] text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 hover:cursor-pointer"
                         >
-                            {loading ? <span className="flex items-center justify-center">LOGGING IN<LoadingDots /></span> : 'LOGIN'}
+                            {submitting ? <span className="flex items-center justify-center">LOGGING IN<LoadingDots /></span> : 'LOGIN'}
                         </button>
 
                         <p className="mt-4 text-center text-sm text-white/50">

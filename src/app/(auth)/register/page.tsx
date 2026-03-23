@@ -54,7 +54,7 @@ function FloatInput({
 }
 
 export default function RegisterPage() {
-    const { register, loading } = useAuthContext();
+    const { register } = useAuthContext();
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -64,6 +64,7 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const getRules = (pwd: string) => ({
         length: pwd.length >= 8,
@@ -106,6 +107,7 @@ export default function RegisterPage() {
         if (!isPasswordValid) return;
         if (password !== confirmPassword) return;
 
+        setSubmitting(true);
         try {
             await register(name, email, password);
             setSuccess(true);
@@ -113,6 +115,8 @@ export default function RegisterPage() {
         } catch (err: unknown) {
             const axiosMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
             setError(axiosMessage ?? 'Registration failed. Please try again.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -222,10 +226,10 @@ export default function RegisterPage() {
 
                             <button
                                 type="submit"
-                                disabled={loading || !isPasswordValid || !passwordsMatch}
+                                disabled={submitting || !isPasswordValid || !passwordsMatch}
                                 className="mt-4 w-full rounded-2xl px-4 py-3 font-medium tracking-[0.08em] text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 hover:cursor-pointer"
                             >
-                                {loading ? <span className="flex items-center justify-center">REGISTERING<LoadingDots /></span> : 'REGISTER'}
+                                {submitting ? <span className="flex items-center justify-center">REGISTERING<LoadingDots /></span> : 'REGISTER'}
                             </button>
 
                             <p className="mt-4 text-center text-sm text-white/50">

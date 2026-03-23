@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import LoadingDots from '@/components/ui/LoadingDots';
 
 interface Endpoint {
     id: string;
@@ -43,15 +44,17 @@ function timeAgo(date: string | Date): string {
 export default function StatusCard({ endpoint, liveStatus, recentlyUpdated, onClick }: StatusCardProps) {
     const [stats, setStats] = useState<Stats | null>(null);
     const [status, setStatus] = useState<LiveStatus | null>(null);
+    const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
-        api.get<LiveStatus>(`/endpoints/${endpoint.id}/status`)
-            .then((r) => setStatus(r.data))
-            .catch(() => setStatus(null));
-
-        api.get<Stats>(`/health-checks/endpoint/${endpoint.id}/stats`)
-            .then((r) => setStats(r.data))
-            .catch(() => setStats(null));
+        setFetching(true);
+        Promise.allSettled([
+            api.get<LiveStatus>(`/endpoints/${endpoint.id}/status`),
+            api.get<Stats>(`/health-checks/endpoint/${endpoint.id}/stats`),
+        ]).then(([statusRes, statsRes]) => {
+            if (statusRes.status === 'fulfilled') setStatus(statusRes.value.data);
+            if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
+        }).finally(() => setFetching(false));
     }, [endpoint.id]);
 
     useEffect(() => {
@@ -108,7 +111,7 @@ export default function StatusCard({ endpoint, liveStatus, recentlyUpdated, onCl
                     <span className={`w-1.5 h-1.5 rounded-full ${
                         isUp === null ? 'bg-white/30' : isUp ? 'bg-green-400' : 'bg-red-400'
                     }`} />
-                    {isUp === null ? 'Pending' : isUp ? 'Up' : 'Down'}
+                    {isUp === null ? (fetching ? <LoadingDots /> : 'Pending') : isUp ? 'Up' : 'Down'}
                 </div>
             </div>
 
@@ -121,19 +124,19 @@ export default function StatusCard({ endpoint, liveStatus, recentlyUpdated, onCl
                         stats.uptimePercentage >= 99 ? 'text-green-400' :
                         stats.uptimePercentage >= 90 ? 'text-yellow-400' : 'text-red-400'
                     }`}>
-                        {stats ? `${stats.uptimePercentage}%` : '—'}
+                        {stats ? `${stats.uptimePercentage}%` : fetching ? <LoadingDots /> : '—'}
                     </p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2">
                     <p className="text-[10px] text-white/40 uppercase tracking-wider">Avg</p>
                     <p className="text-sm font-semibold text-white/80 mt-0.5">
-                        {stats ? `${stats.averageResponseTime}ms` : status ? `${status.responseTime}ms` : '—'}
+                        {stats ? `${stats.averageResponseTime}ms` : status ? `${status.responseTime}ms` : fetching ? <LoadingDots /> : '—'}
                     </p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2">
                     <p className="text-[10px] text-white/40 uppercase tracking-wider">Last</p>
                     <p className="text-sm font-semibold text-white/80 mt-0.5">
-                        {status ? timeAgo(status.lastCheck) : stats ? timeAgo(stats.lastCheck.checkedAt) : '—'}
+                        {status ? timeAgo(status.lastCheck) : stats ? timeAgo(stats.lastCheck.checkedAt) : fetching ? <LoadingDots /> : '—'}
                     </p>
                 </div>
             </div>

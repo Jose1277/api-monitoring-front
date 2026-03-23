@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
 import RedirectingMessage from '@/components/RedirectingMessage';
 import Footer from '@/components/Footer';
+import LoadingDots from '@/components/ui/LoadingDots';
 
 interface FloatInputProps {
     id: string;
@@ -140,7 +141,7 @@ export default function LoginPage() {
                             disabled={loading || success}
                             className="mt-4 w-full rounded-2xl px-4 py-3 font-medium tracking-[0.08em] text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100 hover:cursor-pointer"
                         >
-                            {loading ? 'LOGGING IN...' : 'LOGIN'}
+                            {loading ? <span className="flex items-center justify-center">LOGGING IN<LoadingDots /></span> : 'LOGIN'}
                         </button>
 
                         <p className="mt-4 text-center text-sm text-white/50">

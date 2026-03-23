@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { api } from '@/lib/api';
+import LoadingDots from '@/components/ui/LoadingDots';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
@@ -173,7 +174,7 @@ export default function EndpointForm({ endpoint, onClose, onSaved }: EndpointFor
                                 disabled={loading}
                                 className="w-full rounded-2xl px-4 py-3 text-sm font-medium tracking-widest text-white transition-all duration-300 bg-[linear-gradient(90deg,#c026d3_0%,#7c3aed_55%,#9333ea_100%)] shadow-[0_0_28px_rgba(192,38,211,0.45)] hover:shadow-[0_0_40px_rgba(217,70,239,0.6)] hover:scale-[1.01] disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
                             >
-                                {loading ? 'SAVING...' : 'SAVE'}
+                                {loading ? <span className="flex items-center justify-center">SAVING<LoadingDots /></span> : 'SAVE'}
                             </button>
                         </div>
                     </form>
